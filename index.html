@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="Google keyword rank tracking dashboard"
+    >
+
+    <title>SEO Rank Tracker</title>
+
+    <style>
+
+        :root {
+            --bg: #f6f8fb;
+            --card: #ffffff;
+            --text: #172033;
+            --muted: #667085;
+            --border: #e6e9ef;
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --green: #16a34a;
+            --green-bg: #ecfdf3;
+            --red: #dc2626;
+            --red-bg: #fef2f2;
+            --gray-bg: #f2f4f7;
+            --shadow: 0 2px 10px rgba(16, 24, 40, 0.05);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+        }
+
+        .container {
+            width: min(1400px, calc(100% - 40px));
+            margin: 0 auto;
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        header {
+            padding: 32px 0 24px;
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 28px;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+
+        .brand p {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .last-updated {
+            color: var(--muted);
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 7px;
+            padding: 5px 9px;
+            border-radius: 20px;
+            background: var(--green-bg);
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* =========================
+           STAT CARDS
+        ========================= */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
+
+        .stat-value {
+            margin-top: 8px;
+            font-size: 27px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .stat-subtitle {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .stat-green .stat-value {
+            color: var(--green);
+        }
+
+        .stat-red .stat-value {
+            color: var(--red);
+        }
+
+        .stat-blue .stat-value {
+            color: var(--primary);
+        }
+
+        /* =========================
+           TOOLBAR
+        ========================= */
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 240px;
+        }
+
+        .search-box input {
+            width: 100%;
+            height: 44px;
+            padding: 0 15px 0 42px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: white;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 13px;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        select {
+            height: 44px;
+            padding: 0 35px 0 13px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: white;
+            color: var(--text);
+            font-size: 14px;
+            cursor: pointer;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: var(--primary);
+        }
+
+        /* =========================
+           TABLE
+        ========================= */
+
+        .table-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 18px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .result-count {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 850px;
+        }
+
+        th {
+            padding: 13px 18px;
+            background: #fafbfc;
+            border-bottom: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #eef0f4;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #fafcff;
+        }
+
+        .keyword-name {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .position {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .position.not-ranking {
+            color: #98a2b3;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .previous {
+            color: var(--muted);
+        }
+
+        .change {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .change.up {
+            color: var(--green);
+            background: var(--green-bg);
+        }
+
+        .change.down {
+            color: var(--red);
+            background: var(--red-bg);
+        }
+
+        .change.same {
+            color: var(--muted);
+            background: var(--gray-bg);
+        }
+
+        .country {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .ranking-url {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .ranking-url:hover {
+            text-decoration: underline;
+        }
+
+        /* =========================
+           EMPTY / LOADING
+        ========================= */
+
+        .loading,
+        .empty,
+        .error {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .error {
+            color: var(--red);
+        }
+
+        .spinner {
+            width: 28px;
+            height: 28px;
+            margin: 0 auto 12px;
+            border: 3px solid #e5e7eb;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+            padding: 25px 0 40px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1100px) {
+
+            .stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+
+            .container {
+                width: min(100% - 24px, 1400px);
+            }
+
+            header {
+                padding-top: 22px;
+            }
+
+            .header-row {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .last-updated {
+                text-align: left;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 23px;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            select {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 430px) {
+
+            .stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 9px;
+            }
+
+            .stat-card {
+                padding: 13px;
+            }
+
+            .stat-value {
+                font-size: 21px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <!-- HEADER -->
+
+        <header>
+
+            <div class="header-row">
+
+                <div class="brand">
+
+                    <h1>SEO Rank Tracker</h1>
+
+                    <p id="domainName">
+                        Google keyword rankings
+                    </p>
+
+                </div>
+
+                <div class="last-updated">
+
+                    <div>
+                        Last updated
+                    </div>
+
+                    <strong id="updatedAt">
+                        Loading...
+                    </strong>
+
+                    <div class="status">
+                        <span class="status-dot"></span>
+                        <span id="statusText">
+                            Loading data
+                        </span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- STATISTICS -->
+
+        <section class="stats">
+
+            <div class="stat-card stat-blue">
+
+                <div class="stat-label">
+                    Keywords
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="totalKeywords"
+                >
+                    —
+                </div>
+
+                <div class="stat-subtitle">
+                    Tracked
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-label">
+                    Top 3
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="top3"
+                >
+                    —
+                </div>
+
+                <div class="stat-subtitle">
+                    Keywords
+                </div>
+
+            </div>
+
+
+            <div class="stat-card stat-blue">
+
+                <div class="stat-label">
+                    Top 10
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="top10"
+                >
+                    —
+                </div>
+
+                <div class="stat-subtitle">
+                    Keywords
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-label">
+                    Top 100
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="top100"
+                >
+                    —
+                </div>
+
+                <div class="stat-subtitle">
+                    Keywords
+                </div>
+
+            </div>
+
+
+            <div class="stat-card stat-green">
+
+                <div class="stat-label">
+                    Improved
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="improved"
+                >
+                    —
+                </div>
+
+                <div class="stat-subtitle">
+                    Since previous check
+                </div>
+
+            </div>
+
+
+            <div class="stat-card stat-red">
+
+                <div class="stat-label">
+                    Declined
+                </div>
+
+                <div
+                    class="stat-value"
+                    id="declined"
+                >
+                    —
+                </div>
+
+                <div class="stat-subtitle">
+                    Since previous check
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- FILTERS -->
+
+        <section class="toolbar">
+
+            <div class="search-box">
+
+                <span class="search-icon">
+                    🔍
+                </span>
+
+                <input
+                    type="search"
+                    id="searchInput"
+                    placeholder="Search keywords..."
+                    autocomplete="off"
+                >
+
+            </div>
+
+
+            <select id="positionFilter">
+
+                <option value="all">
+                    All positions
+                </option>
+
+                <option value="top3">
+                    Top 3
+                </option>
+
+                <option value="top10">
+                    Top 10
+                </option>
+
+                <option value="top20">
+                    Top 20
+                </option>
+
+                <option value="top50">
+                    Top 50
+                </option>
+
+                <option value="top100">
+                    Top 100
+                </option>
+
+                <option value="not-ranking">
+                    Not ranking
+                </option>
+
+            </select>
+
+
+            <select id="changeFilter">
+
+                <option value="all">
+                    All changes
+                </option>
+
+                <option value="improved">
+                    Improved
+                </option>
+
+                <option value="declined">
+                    Declined
+                </option>
+
+                <option value="same">
+                    No change
+                </option>
+
+            </select>
+
+
+            <select id="sortFilter">
+
+                <option value="position">
+                    Sort: Position
+                </option>
+
+                <option value="keyword">
+                    Sort: Keyword
+                </option>
+
+                <option value="change">
+                    Sort: Change
+                </option>
+
+                <option value="previous">
+                    Sort: Previous
+                </option>
+
+            </select>
+
+        </section>
+
+
+        <!-- TABLE -->
+
+        <section class="table-card">
+
+            <div class="table-header">
+
+                <div class="table-title">
+                    Keyword Rankings
+                </div>
+
+                <div
+                    class="result-count"
+                    id="resultCount"
+                >
+                    —
+                </div>
+
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Keyword
+                            </th>
+
+                            <th>
+                                Position
+                            </th>
+
+                            <th>
+                                Previous
+                            </th>
+
+                            <th>
+                                Change
+                            </th>
+
+                            <th>
+                                Country
+                            </th>
+
+                            <th>
+                                Ranking URL
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="rankingsBody">
+
+                        <tr>
+
+                            <td colspan="6">
+
+                                <div class="loading">
+
+                                    <div class="spinner"></div>
+
+                                    Loading rankings...
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <footer>
+
+            SEO Rank Tracker
+
+        </footer>
+
+    </main>
+
+
+<script>
+
+    /*
+     * ==========================================
+     * CONFIGURATION
+     * ==========================================
+     */
+
+    const DATA_URL = "data/rankings.json";
+
+
+    /*
+     * ==========================================
+     * GLOBAL DATA
+     * ==========================================
+     */
+
+    let rankings = [];
+
+
+    /*
+     * ==========================================
+     * LOAD DATA
+     * ==========================================
+     */
+
+    async function loadRankings() {
+
+        try {
+
+            const response = await fetch(
+                DATA_URL + "?t=" + Date.now()
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    "Could not load rankings.json"
+                );
+            }
+
+            const data = await response.json();
+
+            rankings = Array.isArray(data.keywords)
+                ? data.keywords
+                : [];
+
+            updateHeader(data);
+
+            updateStatistics();
+
+            renderTable();
+
+            document.getElementById(
+                "statusText"
+            ).textContent = "Data available";
+
+        } catch (error) {
+
+            console.error(error);
+
+            document.getElementById(
+                "statusText"
+            ).textContent = "Unable to load";
+
+            document.getElementById(
+                "rankingsBody"
+            ).innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        <div class="error">
+                            Unable to load ranking data.
+                            <br>
+                            Please check
+                            data/rankings.json.
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+
+    /*
+     * ==========================================
+     * HEADER
+     * ==========================================
+     */
+
+    function updateHeader(data) {
+
+        if (data.domain) {
+
+            document.getElementById(
+                "domainName"
+            ).textContent =
+                data.domain;
+
+        }
+
+        if (data.updated_at) {
+
+            const date = new Date(
+                data.updated_at
+            );
+
+            if (!isNaN(date.getTime())) {
+
+                document.getElementById(
+                    "updatedAt"
+                ).textContent =
+                    date.toLocaleString();
+
+            }
+
+        }
+
+    }
+
+
+    /*
+     * ==========================================
+     * STATISTICS
+     * ==========================================
+     */
+
+    function updateStatistics() {
+
+        const total = rankings.length;
+
+        const top3 = rankings.filter(
+            item =>
+                isRanking(item) &&
+                item.position <= 3
+        ).length;
+
+        const top10 = rankings.filter(
+            item =>
+                isRanking(item) &&
+                item.position <= 10
+        ).length;
+
+        const top100 = rankings.filter(
+            item =>
+                isRanking(item) &&
+                item.position <= 100
+        ).length;
+
+        const improved = rankings.filter(
+            item =>
+                Number(item.change) > 0
+        ).length;
+
+        const declined = rankings.filter(
+            item =>
+                Number(item.change) < 0
+        ).length;
+
+
+        document.getElementById(
+            "totalKeywords"
+        ).textContent = total;
+
+        document.getElementById(
+            "top3"
+        ).textContent = top3;
+
+        document.getElementById(
+            "top10"
+        ).textContent = top10;
+
+        document.getElementById(
+            "top100"
+        ).textContent = top100;
+
+        document.getElementById(
+            "improved"
+        ).textContent = improved;
+
+        document.getElementById(
+            "declined"
+        ).textContent = declined;
+
+    }
+
+
+    /*
+     * ==========================================
+     * FILTER + SORT
+     * ==========================================
+     */
+
+    function getFilteredRankings() {
+
+        let results = [...rankings];
+
+
+        const search =
+            document.getElementById(
+                "searchInput"
+            ).value
+            .trim()
+            .toLowerCase();
+
+
+        if (search) {
+
+            results = results.filter(
+                item =>
+                    String(
+                        item.keyword || ""
+                    )
+                    .toLowerCase()
+                    .includes(search)
+            );
+
+        }
+
+
+        const positionFilter =
+            document.getElementById(
+                "positionFilter"
+            ).value;
+
+
+        results = results.filter(item => {
+
+            const position =
+                Number(item.position);
+
+            const ranking =
+                isRanking(item);
+
+
+            switch (positionFilter) {
+
+                case "top3":
+                    return ranking &&
+                        position <= 3;
+
+                case "top10":
+                    return ranking &&
+                        position <= 10;
+
+                case "top20":
+                    return ranking &&
+                        position <= 20;
+
+                case "top50":
+                    return ranking &&
+                        position <= 50;
+
+                case "top100":
+                    return ranking &&
+                        position <= 100;
+
+                case "not-ranking":
+                    return !ranking;
+
+                default:
+                    return true;
+            }
+
+        });
+
+
+        const changeFilter =
+            document.getElementById(
+                "changeFilter"
+            ).value;
+
+
+        results = results.filter(item => {
+
+            const change =
+                Number(item.change);
+
+            switch (changeFilter) {
+
+                case "improved":
+                    return change > 0;
+
+                case "declined":
+                    return change < 0;
+
+                case "same":
+                    return change === 0 ||
+                        !Number.isFinite(change);
+
+                default:
+                    return true;
+            }
+
+        });
+
+
+        const sort =
+            document.getElementById(
+                "sortFilter"
+            ).value;
+
+
+        results.sort((a, b) => {
+
+            if (sort === "keyword") {
+
+                return String(
+                    a.keyword || ""
+                ).localeCompare(
+                    String(b.keyword || "")
+                );
+
+            }
+
+
+            if (sort === "change") {
+
+                return Number(
+                    b.change || 0
+                ) - Number(
+                    a.change || 0
+                );
+
+            }
+
+
+            if (sort === "previous") {
+
+                return positionValue(
+                    a.previous_position
+                ) - positionValue(
+                    b.previous_position
+                );
+
+            }
+
+
+            return positionValue(
+                a.position
+            ) - positionValue(
+                b.position
+            );
+
+        });
+
+
+        return results;
+
+    }
+
+
+    /*
+     * ==========================================
+     * TABLE
+     * ==========================================
+     */
+
+    function renderTable() {
+
+        const body =
+            document.getElementById(
+                "rankingsBody"
+            );
+
+        const results =
+            getFilteredRankings();
+
+
+        document.getElementById(
+            "resultCount"
+        ).textContent =
+            `${results.length} keyword${
+                results.length === 1
+                    ? ""
+                    : "s"
+            }`;
+
+
+        if (!results.length) {
+
+            body.innerHTML = `
+                <tr>
+                    <td colspan="6">
+                        <div class="empty">
+                            No keywords found.
+                        </div>
+                    </td>
+                </tr>
+            `;
+
+            return;
+        }
+
+
+        body.innerHTML =
+            results.map(
+                createRow
+            ).join("");
+
+    }
+
+
+    /*
+     * ==========================================
+     * TABLE ROW
+     * ==========================================
+     */
+
+    function createRow(item) {
+
+        const keyword =
+            escapeHtml(
+                item.keyword || ""
+            );
+
+
+        const position =
+            isRanking(item)
+                ? Number(item.position)
+                : null;
+
+
+        const previous =
+            isRankingValue(
+                item.previous_position
+            )
+                ? Number(
+                    item.previous_position
+                )
+                : null;
+
+
+        const positionHtml =
+            position === null
+
+                ? `
+                    <span class="position not-ranking">
+                        100+
+                    </span>
+                  `
+
+                : `
+                    <span class="position">
+                        ${position}
+                    </span>
+                  `;
+
+
+        const previousHtml =
+            previous === null
+                ? "—"
+                : previous;
+
+
+        const change =
+            Number(item.change);
+
+
+        let changeHtml;
+
+
+        if (Number.isFinite(change)) {
+
+            if (change > 0) {
+
+                changeHtml = `
+                    <span class="change up">
+                        ↑ ${change}
+                    </span>
+                `;
+
+            }
+
+            else if (change < 0) {
+
+                changeHtml = `
+                    <span class="change down">
+                        ↓ ${Math.abs(change)}
+                    </span>
+                `;
+
+            }
+
+            else {
+
+                changeHtml = `
+                    <span class="change same">
+                        — 0
+                    </span>
+                `;
+
+            }
+
+        }
+
+        else {
+
+            changeHtml = `
+                <span class="change same">
+                    —
+                </span>
+            `;
+
+        }
+
+
+        const country =
+            escapeHtml(
+                item.country || "—"
+            );
+
+
+        let urlHtml = "—";
+
+
+        if (item.url) {
+
+            const safeUrl =
+                escapeAttribute(
+                    item.url
+                );
+
+            urlHtml = `
+                <a
+                    class="ranking-url"
+                    href="${safeUrl}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    View ↗
+                </a>
+            `;
+
+        }
+
+
+        return `
+            <tr>
+
+                <td>
+                    <span class="keyword-name">
+                        ${keyword}
+                    </span>
+                </td>
+
+                <td>
+                    ${positionHtml}
+                </td>
+
+                <td>
+                    <span class="previous">
+                        ${previousHtml}
+                    </span>
+                </td>
+
+                <td>
+                    ${changeHtml}
+                </td>
+
+                <td>
+                    <span class="country">
+                        ${country}
+                    </span>
+                </td>
+
+                <td>
+                    ${urlHtml}
+                </td>
+
+            </tr>
+        `;
+
+    }
+
+
+    /*
+     * ==========================================
+     * HELPERS
+     * ==========================================
+     */
+
+    function isRanking(item) {
+
+        return isRankingValue(
+            item.position
+        );
+
+    }
+
+
+    function isRankingValue(value) {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ""
+        ) {
+            return false;
+        }
+
+        const number =
+            Number(value);
+
+        return Number.isFinite(number) &&
+            number > 0;
+
+    }
+
+
+    function positionValue(value) {
+
+        if (!isRankingValue(value)) {
+            return 999999;
+        }
+
+        return Number(value);
+
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+
+    }
+
+
+    function escapeAttribute(value) {
+
+        return escapeHtml(value);
+
+    }
+
+
+    /*
+     * ==========================================
+     * EVENTS
+     * ==========================================
+     */
+
+    document
+        .getElementById("searchInput")
+        .addEventListener(
+            "input",
+            renderTable
+        );
+
+
+    document
+        .getElementById("positionFilter")
+        .addEventListener(
+            "change",
+            renderTable
+        );
+
+
+    document
+        .getElementById("changeFilter")
+        .addEventListener(
+            "change",
+            renderTable
+        );
+
+
+    document
+        .getElementById("sortFilter")
+        .addEventListener(
+            "change",
+            renderTable
+        );
+
+
+    /*
+     * ==========================================
+     * START
+     * ==========================================
+     */
+
+    loadRankings();
+
+</script>
+
+</body>
+</html>
