@@ -3,7 +3,8 @@ name: Update Semrush Rankings
 on:
   workflow_dispatch:
   schedule:
-    - cron: "15 2 * * *"
+    # 09:00 India Standard Time (IST = UTC+5:30)
+    - cron: "30 3 * * *"
 
 permissions:
   contents: write
