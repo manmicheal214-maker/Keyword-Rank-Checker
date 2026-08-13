@@ -1,0 +1,46 @@
+{
+  "domain": "example.com",
+  "updated_at": "2026-08-13T11:00:00Z",
+  "keywords": [
+    {
+      "keyword": "seo tools",
+      "position": 3,
+      "previous_position": 5,
+      "change": 2,
+      "country": "United States",
+      "url": "https://example.com/seo-tools"
+    },
+    {
+      "keyword": "keyword research",
+      "position": 8,
+      "previous_position": 12,
+      "change": 4,
+      "country": "United States",
+      "url": "https://example.com/keyword-research"
+    },
+    {
+      "keyword": "seo software",
+      "position": 14,
+      "previous_position": 11,
+      "change": -3,
+      "country": "United States",
+      "url": "https://example.com/software"
+    },
+    {
+      "keyword": "rank tracker",
+      "position": 27,
+      "previous_position": 27,
+      "change": 0,
+      "country": "United States",
+      "url": "https://example.com/rank-tracker"
+    },
+    {
+      "keyword": "seo agency",
+      "position": null,
+      "previous_position": 76,
+      "change": -24,
+      "country": "United States",
+      "url": null
+    }
+  ]
+}
