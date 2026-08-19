@@ -1,0 +1,12 @@
+{
+  "name": "keyword-rank-checker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static SEO rank tracker frontend with a server-side ZenRows API endpoint.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}
