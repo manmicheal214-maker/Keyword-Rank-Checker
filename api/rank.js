@@ -26,18 +26,14 @@ export default async function handler(req, res) {
   const origin = getAllowedOrigin(req.headers?.origin);
   setCorsHeaders(res, origin);
 
-  if (req.method === "OPTIONS") {
-    return res.status(204).end();
-  }
+  if (req.method === "OPTIONS") return res.status(204).end();
 
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST, OPTIONS");
     return jsonError(res, 405, "Method not allowed.");
   }
 
-  if (!origin) {
-    return jsonError(res, 403, "Origin not allowed.");
-  }
+  if (!origin) return jsonError(res, 403, "Origin not allowed.");
 
   const ip = getClientIp(req);
   if (!checkRateLimit(ip)) {
@@ -75,11 +71,16 @@ export default async function handler(req, res) {
     googleUrl.searchParams.set("hl", "en");
     googleUrl.searchParams.set("gl", geo.code);
 
-    const zenRowsUrl = new URL("https://serp.api.zenrows.com/v1/targets/google/search");
+    // Keep the Universal Scraper endpoint requested by the project spec. Autoparse
+    // is preferred; HTML parsing is only a defensive fallback if Google/ZenRows
+    // returns an unstructured response.
+    const zenRowsUrl = new URL("https://api.zenrows.com/v1/");
     zenRowsUrl.searchParams.set("url", googleUrl.toString());
     zenRowsUrl.searchParams.set("apikey", apiKey);
-    zenRowsUrl.searchParams.set("country", geo.code);
-    zenRowsUrl.searchParams.set("tld", `.${geo.tld}`);
+    zenRowsUrl.searchParams.set("js_render", "true");
+    zenRowsUrl.searchParams.set("premium_proxy", "true");
+    zenRowsUrl.searchParams.set("proxy_country", geo.code);
+    zenRowsUrl.searchParams.set("autoparse", "true");
     zenRowsUrl.searchParams.set("device", device);
 
     const response = await fetchWithTimeout(zenRowsUrl, 25_000);
@@ -96,15 +97,22 @@ export default async function handler(req, res) {
       return jsonError(res, 502, "The ranking service returned an error.");
     }
 
-    let data;
+    let data = null;
     try {
       data = JSON.parse(responseText);
     } catch {
-      console.error("ZenRows returned non-JSON data");
-      return jsonError(res, 502, "The ranking service returned an invalid response.");
+      // Autoparse may return a non-JSON response for an unsupported target.
+      // In that case, use the narrowly scoped Google result fallback parser.
     }
 
-    const results = extractOrganicResults(data).slice(0, 100);
+    const results = data
+      ? extractOrganicResults(data).slice(0, 100)
+      : extractGoogleHtmlResults(responseText).slice(0, 100);
+
+    if (!results.length) {
+      return jsonError(res, 502, "The ranking service returned no usable Google results.");
+    }
+
     const match = results.find((item) => domainsMatch(item.url, domain));
 
     return res.status(200).json({
@@ -155,11 +163,18 @@ function checkRateLimit(ip) {
 
   if (!bucket || now - bucket.startedAt >= RATE_WINDOW_MS) {
     requestBuckets.set(ip, { startedAt: now, count: 1 });
+    if (requestBuckets.size > 1000) pruneRateLimits(now);
     return true;
   }
 
   bucket.count += 1;
   return bucket.count <= RATE_LIMIT;
+}
+
+function pruneRateLimits(now) {
+  for (const [key, bucket] of requestBuckets) {
+    if (now - bucket.startedAt >= RATE_WINDOW_MS) requestBuckets.delete(key);
+  }
 }
 
 function getContentLength(req) {
@@ -210,7 +225,9 @@ function extractOrganicResults(data) {
       ? data.organicResults
       : Array.isArray(data?.results)
         ? data.results
-        : [];
+        : Array.isArray(data?.data?.organic_results)
+          ? data.data.organic_results
+          : [];
 
   const results = [];
   const seen = new Set();
@@ -230,13 +247,56 @@ function extractOrganicResults(data) {
     seen.add(url);
 
     results.push({
-      position: Number(item?.position) > 0 ? Number(item.position) : results.length + 1,
+      position: results.length + 1,
       url,
       title: String(item?.title || "").trim()
     });
   }
 
-  return results.map((item, index) => ({ ...item, position: index + 1 }));
+  return results;
+}
+
+function extractGoogleHtmlResults(html) {
+  const results = [];
+  const seen = new Set();
+  const regex = /<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let match;
+
+  while ((match = regex.exec(html)) !== null && results.length < 100) {
+    let href = match[1];
+    if (href.startsWith("/url?q=")) href = href.slice(7);
+
+    try {
+      href = decodeURIComponent(href);
+    } catch {
+      continue;
+    }
+
+    if (!/^https?:\/\//i.test(href)) continue;
+
+    const url = href.split("&")[0];
+    try {
+      const hostname = new URL(url).hostname.toLowerCase();
+      if (hostname.includes("google.") || hostname === "youtube.com" || hostname.endsWith(".youtube.com")) continue;
+    } catch {
+      continue;
+    }
+
+    if (seen.has(url)) continue;
+    seen.add(url);
+
+    const title = match[2]
+      .replace(/<[^>]*>/g, "")
+      .replace(/&amp;/g, "&")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .trim();
+
+    if (!title) continue;
+    results.push({ position: results.length + 1, url, title });
+  }
+
+  return results;
 }
 
 async function fetchWithTimeout(url, timeoutMs) {
@@ -246,7 +306,7 @@ async function fetchWithTimeout(url, timeoutMs) {
   try {
     return await fetch(url, {
       method: "GET",
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json,text/html;q=0.9,*/*;q=0.8" },
       signal: controller.signal
     });
   } finally {
