@@ -21,8 +21,9 @@ Vercel Node.js Serverless Function
     |
     | ZENROWS_API_KEY (server environment only)
     v
-ZenRows Google SERP API
+ZenRows Universal Scraper API
     |
+    | Google SERP URL + locale + device + structured autoparse
     v
 Google organic results
     |
@@ -77,7 +78,9 @@ Create a local `.env` file from `.env.example` and set a real key locally. Never
 
 ## ZenRows setup
 
-The backend uses ZenRows' dedicated Google Search Results API because it returns structured organic results instead of requiring brittle Google HTML selectors. ZenRows documents the Google SERP endpoint and localized country/TLD parameters here: https://docs.zenrows.com/scraper-apis/get-started/google-search
+The backend uses the ZenRows Universal Scraper API endpoint requested by this project: `https://api.zenrows.com/v1/`. It sends the Google search URL, JavaScript rendering, Premium Proxy, country-specific proxy routing, device, and `autoparse=true`. Structured organic results are preferred; a narrowly scoped Google HTML parser is used only as a fallback when ZenRows returns an unstructured response.
+
+ZenRows documents the Universal Scraper API parameters, including `autoparse` and `proxy_country`, in its API specification documentation.
 
 Create or retrieve your ZenRows API key from your ZenRows account, then store it only as the server environment variable:
 
@@ -85,7 +88,7 @@ Create or retrieve your ZenRows API key from your ZenRows account, then store it
 ZENROWS_API_KEY=your_zenrows_api_key
 ```
 
-The backend also sends the selected country/TLD and device to the ZenRows request. The Google query URL requests up to 100 results.
+The Google query URL requests up to 100 results and includes country/locale parameters so the SERP is localized.
 
 ## Environment variables
 
